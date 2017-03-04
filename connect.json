@@ -1,0 +1,14 @@
+{
+  "irc": {
+    "host": "irc.twitch.tv",
+    "port": 6667
+  },
+  "limit": {
+    "message": 20,
+    "time": 30
+  },
+  "check": {
+    "in": "PING :tmi.twitch.tv",
+    "out": "PONG :tmi.twitch.tv"
+  }
+}
