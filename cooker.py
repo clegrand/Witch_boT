@@ -34,7 +34,10 @@ class TwitchConnect(socket):
             threading.Thread(target=self._recver).start()
 
     def link_func(self, func):
-        self.func_recv.append(func)
+        if isinstance(func, (list, tuple)):
+            self.func_recv.extend(func)
+        else:
+            self.func_recv.append(func)
 
     def send_message(self, mess):
         def_message = "{}\r\n"
