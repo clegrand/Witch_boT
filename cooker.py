@@ -1,6 +1,7 @@
 from socket import socket
 import json
 import threading
+from time import sleep
 
 from lepl import Any, Regexp
 
@@ -12,6 +13,7 @@ class TwitchConnect(socket):
     PASS = "PASS oauth:{}"
     USER = "NICK {}"
     DEF_BUFF = 1024
+    RECV_TIME = 0.1
 
     def __init__(self, user, passwd, conn_path=CONNECTION_PATH):
         with open(conn_path) as f:
@@ -52,6 +54,7 @@ class TwitchConnect(socket):
                 logger.info("> {}".format(r))
                 for func in self.func_recv:
                     func(r)
+            sleep(self.RECV_TIME)
 
     def _ping_pong(self, mess):
         if mess == self.check_in:
