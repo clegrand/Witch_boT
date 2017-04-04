@@ -13,8 +13,8 @@ class TwitchConnect(socket):
     USER = "NICK {}"
     DEF_BUFF = 1024
 
-    def __init__(self, user, passwd):
-        with open(CONNECTION_PATH) as f:
+    def __init__(self, user, passwd, conn_path=CONNECTION_PATH):
+        with open(conn_path) as f:
             j = json.loads(f.read())
             c = j['irc']
             super().__init__()
