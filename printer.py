@@ -1,12 +1,12 @@
 from cave import User
 from cooker import TwitchConnect
-from welcome import opts
+from welcome import opts, ARGS
 
 
 class Console:
 
     def __init__(self):
-        self.user = User()
+        self.user = User(opts[ARGS]['user'])
         if not self.user or opts.get("args").create:
             self.user = get_string(_("Enter your Twitch user :"))
             self.user.passwd = get_string(_("Enter your Twitch IRC oauth password :"), "oauth:")

@@ -1,6 +1,10 @@
 import logging
 import argparse
 
+from attic import CONNECTION_PATH
+
+ARGS = 'args'
+
 opts = {}
 logger = logging.Logger('default')
 logger.addHandler(logging.StreamHandler())
@@ -12,9 +16,13 @@ def get_args():
     parser.add_argument('-c', "--create", action="store_true",
                         help=_("Show login section"))
     parser.add_argument('-d', "--debug", action="store_true")
-    parser.add_argument('-g', "--no-graphic", dest="graphic", action="store_false", default=True)
+    parser.add_argument('-u', "--user", default=CONNECTION_PATH,
+                        help=_("Select user file"))
+    parser.add_argument('-g', "--no-graphic", dest="graphic", action="store_false",
+                        default=True,
+                        help=_("Unable graphic interface"))
     global opts, logger
-    opts['args'] = o = parser.parse_args()
+    opts[ARGS] = o = parser.parse_args()
     if o.debug:
         logger.setLevel(logging.DEBUG)
     elif not o.graphic:
