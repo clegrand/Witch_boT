@@ -6,8 +6,8 @@ from welcome import opts, ARGS
 class Console:
 
     def __init__(self):
-        self.user = User(opts[ARGS]['user'])
-        if not self.user or opts.get("args").create:
+        self.user = User(opts[ARGS].user)
+        if not self.user or opts.get(ARGS).create:
             self.user.user = get_string(_("Enter your Twitch user :"))
             self.user.passwd = get_string(_("Enter your Twitch IRC oauth password :"), "oauth:")
         if not self.user.channels:
