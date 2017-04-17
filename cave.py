@@ -1,4 +1,8 @@
 import json
+import time
+
+from functools import partial
+from itertools import filterfalse
 
 from attic import USER_PATH
 
@@ -31,3 +35,43 @@ class User:
 
     def __bool__(self):
         return bool(self.user and self.passwd)
+
+
+class TimeLimit:
+
+    def __init__(self, limit, delay=1.0):
+        self._times = []
+        self.limit = limit
+        self.delay = delay  # In seconds
+
+    def _refresh(func):  # Decorator
+        def wrapper(inst, *args, **kwargs):
+            inst.refresh()
+            return func(inst, *args, **kwargs)
+        return wrapper
+
+    @_refresh
+    def checkpoint(self):
+        if self:
+            self._times.append(time.perf_counter())
+            return True
+        return False
+
+    def refresh(self):
+        self._times = list(filterfalse(partial(self._out_of_limit, time_limit=self.delay), self._times))
+
+    @staticmethod
+    def _out_of_limit(elem, time_limit):
+        return (time.perf_counter() - elem) > time_limit
+
+    @_refresh
+    def __repr__(self):
+        return "{cur}/{max} {delay}s".format(
+            cur=len(self._times),
+            max=self.limit,
+            delay=self.delay
+        )
+
+    @_refresh
+    def __bool__(self):
+        return self._times.__len__() < self.limit

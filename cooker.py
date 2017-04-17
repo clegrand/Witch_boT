@@ -6,6 +6,7 @@ from time import sleep
 from lepl import Any, Regexp
 
 from attic import CONNECTION_PATH
+from cave import TimeLimit
 from welcome import logger
 
 
@@ -27,7 +28,7 @@ class TwitchConnect(socket):
             self.func_recv = []
             t = j.get('limit')
             if t:
-                self.message_ratio = t['message'] / t['time']
+                self.limit = TimeLimit(limit=t['message'], delay=t['time'])
             i = j.get('check')
             if i:
                 self.check_in = i.get("in")
@@ -42,9 +43,14 @@ class TwitchConnect(socket):
         else:
             self.func_recv.append(func)
 
-    def send_message(self, mess):
+    def send_message(self, mess, check_mess=True):
+        if check_mess and hasattr(self, 'limit'):
+            if not self.limit.checkpoint():
+                logger.warn(_("Messages number out of limit (message lost)"))
+                return False
         self.send(self.DEF_MESSAGE.format(mess).encode())
         logger.debug("< {}".format(mess))
+        return True
 
     def _recver(self):
         p = Any()[:, ...] & ~Regexp("\r\n")
