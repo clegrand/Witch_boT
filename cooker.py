@@ -14,6 +14,7 @@ class TwitchConnect(socket):
     USER = "NICK {}"
     DEF_BUFF = 1024
     RECV_TIME = 0.1
+    DEF_MESSAGE = "{}\r\n"
 
     def __init__(self, user, passwd, conn_path=CONNECTION_PATH):
         with open(conn_path) as f:
@@ -42,8 +43,7 @@ class TwitchConnect(socket):
             self.func_recv.append(func)
 
     def send_message(self, mess):
-        def_message = "{}\r\n"
-        self.send(def_message.format(mess).encode())
+        self.send(self.DEF_MESSAGE.format(mess).encode())
         logger.debug("< {}".format(mess))
 
     def _recver(self):
