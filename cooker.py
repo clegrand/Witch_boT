@@ -48,6 +48,7 @@ class TwitchConnect(socket):
             if not self.limit.checkpoint():
                 logger.warn(_("Messages number out of limit (message lost)"))
                 return False
+            logger.debug(self.limit)
         self.send(self.DEF_MESSAGE.format(mess).encode())
         logger.debug("< {}".format(mess))
         return True
@@ -55,11 +56,15 @@ class TwitchConnect(socket):
     def _recver(self):
         p = Any()[:, ...] & ~Regexp("\r\n")
         while True:
-            r = p.parse(self.recv(self.DEF_BUFF).decode())[0]
-            if r:
-                logger.info("> {}".format(r))
-                for func in self.func_recv:
-                    func(r)
+            data = self.recv(self.DEF_BUFF)
+            if data:
+                r = p.parse(data.decode())[0]
+                if r:
+                    logger.info("> {}".format(r))
+                    for func in self.func_recv:
+                        func(r)
+            else:
+                return
             sleep(self.RECV_TIME)
 
     def _ping_pong(self, mess):
