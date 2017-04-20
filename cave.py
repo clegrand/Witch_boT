@@ -75,3 +75,11 @@ class TimeLimit:
     @_refresh
     def __bool__(self):
         return self._times.__len__() < self.limit
+
+
+def parse_params(msg):
+    d = {}
+    for m in msg.split(';'):
+        f = m.find('=')
+        d[m[:f]] = m[f+1:]
+    return d

@@ -1,3 +1,4 @@
+import re
 from socket import socket
 import json
 import threading
@@ -6,7 +7,7 @@ from time import sleep
 from lepl import Any, Regexp, Drop, Literal, Word, make_dict, FullFirstMatchException
 
 from attic import CONNECTION_PATH
-from cave import TimeLimit
+from cave import TimeLimit, parse_params
 from welcome import logger
 
 
@@ -100,6 +101,14 @@ class Channel:
     BOT_PROMPT = "[BOT] {}"
     JOIN = "JOIN {}"
     SEND = "PRIVMSG {channel} :{msg}"
+    CHANNEL_RE = {
+        "user_join": re.compile(r"(?P<user>\w+)!\w+@\w+\.tmi\.twitch\.tv JOIN (?P<channel>#\w+)"),
+        "get_message":
+            re.compile(
+                r"(?:@(?P<info>.*):|)(?P<user>\w+)!\w+@\w+\.tmi\.twitch\.tv PRIVMSG (?P<channel>#\w+) :(?P<message>.*)"
+            ),
+        "user_part": re.compile(r"(?P<user>\w+)!\w+@\w+\.tmi\.twitch\.tv PART (?P<channel>#\w+)")
+    }
 
     def __init__(self, channel_name, connection):
         self.channel_name = "#{}".format(channel_name)
@@ -123,22 +132,19 @@ class Channel:
         ))
 
     def _get_message(self, msg):
-        user = Word() > "user"
-        message = Any()[..., ] > "response"
-        get_msg = user & Drop(
-            Literal('!') &
-            user &
-            Literal('@') &
-            user &
-            Regexp(r"\.tmi\.twitch\.tv PRIVMSG ") &
-            self.channel_name &
-            Regexp(r" :")
-        ) & message > make_dict
-        try:
-            msg = get_msg.parse(msg)[0]
-        except FullFirstMatchException:
-            return
-        logger.debug("{user}: {response}".format(**msg))
+        for k, r in self.CHANNEL_RE.items():
+            m = r.search(msg)
+            if m:
+                m = m.groupdict()
+                if m['channel'] == self.channel_name:
+                    del m['channel']
+                    i = m.get('info')
+                    if i:
+                        m['info'] = parse_params(i)
+                    logger.debug("Match : %s with data : %s" % (k, m))
+                    for f in self.channel_plugins:
+                        getattr(f, k)(**m)
+                    break
 
 
 class ChannelPlugin:
@@ -150,7 +156,7 @@ class ChannelPlugin:
     def user_join(self, user, info=None):
         pass
 
-    def get_message(self, user, msg, info=None):
+    def get_message(self, user, message, info=None):
         pass
 
     def user_part(self, user, info=None):
