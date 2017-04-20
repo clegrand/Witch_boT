@@ -16,3 +16,4 @@ if __name__ == "__main__":
     else:
         c = Console()
         c.connect()
+        c.input_loop()
