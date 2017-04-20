@@ -13,9 +13,10 @@ from welcome import logger
 class TwitchConnect(socket):
     PASS = "PASS oauth:{}"
     USER = "NICK {}"
-    DEF_BUFF = 1024
+    DEF_BUFF = 2048
     RECV_TIME = 0.1
-    DEF_MESSAGE = "{}\r\n"
+    END_MSG = "\r\n"
+    DEF_MESSAGE = "{}" + END_MSG
 
     def __init__(self, user, passwd, conn_path=CONNECTION_PATH):
         with open(conn_path) as f:
@@ -54,15 +55,26 @@ class TwitchConnect(socket):
         return True
 
     def _recver(self):
-        p = Optional(~Literal(':')) & Any()[:, ...] & ~Regexp("\r\n")
+        p = Optional(~Literal(':')) & Any()[:, ...]
         while True:
-            data = self.recv(self.DEF_BUFF)
+            data = b''
+            try:
+                while not data.decode().endswith(self.END_MSG):
+                    data += self.recv(self.DEF_BUFF)
+                    if len(data) >= self.DEF_BUFF:
+                        continue
+                    break
+            except OSError:
+                logger.debug("Connection lost")
+                return
             if data:
-                r = p.parse(data.decode())[0]
-                if r:
-                    logger.info("> {}".format(r))
-                    for func in self.func_recv:
-                        func(r)
+                logger.debug("Data : %u" % len(data))
+                for d in data.decode().strip().split(self.END_MSG):
+                    r = p.parse(d)[0]
+                    if r:
+                        logger.info("> {}".format(r))
+                        for func in self.func_recv:
+                            func(r)
             else:
                 return
             sleep(self.RECV_TIME)
