@@ -3,7 +3,7 @@ import json
 import threading
 from time import sleep
 
-from lepl import Any, Regexp, Drop, Literal, Word, make_dict, Optional, FullFirstMatchException
+from lepl import Any, Regexp, Drop, Literal, Word, make_dict, FullFirstMatchException
 
 from attic import CONNECTION_PATH
 from cave import TimeLimit
@@ -15,7 +15,8 @@ class TwitchConnect(socket):
     USER = "NICK {}"
     DEF_BUFF = 2048
     RECV_TIME = 0.1
-    END_MSG = "\r\n"
+    BEGIN_MSG = ':'
+    END_MSG = '\r\n'
     DEF_MESSAGE = "{}" + END_MSG
 
     def __init__(self, user, passwd, conn_path=CONNECTION_PATH):
@@ -55,7 +56,6 @@ class TwitchConnect(socket):
         return True
 
     def _recver(self):
-        p = Optional(~Literal(':')) & Any()[:, ...]
         while True:
             data = b''
             try:
@@ -70,11 +70,12 @@ class TwitchConnect(socket):
             if data:
                 logger.debug("Data : %u" % len(data))
                 for d in data.decode().strip().split(self.END_MSG):
-                    r = p.parse(d)[0]
-                    if r:
-                        logger.info("> {}".format(r))
+                    if d.startswith(self.BEGIN_MSG):
+                        d = d[1:]
+                    if d:
+                        logger.info("> {}".format(d))
                         for func in self.func_recv:
-                            func(r)
+                            func(d)
             else:
                 return
             sleep(self.RECV_TIME)
