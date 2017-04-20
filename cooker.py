@@ -139,3 +139,19 @@ class Channel:
         except FullFirstMatchException:
             return
         logger.debug("{user}: {response}".format(**msg))
+
+
+class ChannelPlugin:
+
+    def __init__(self, channel, capabilities=[]):
+        channel.link_plugins(self)
+        channel.connect.add_capabilities(filter(lambda x: x not in channel.connect.capabilities, capabilities))
+
+    def user_join(self, user, info=None):
+        pass
+
+    def get_message(self, user, msg, info=None):
+        pass
+
+    def user_part(self, user, info=None):
+        pass
