@@ -102,10 +102,12 @@ class Channel:
         else:
             self.channel_plugins.append(func)
 
-    def send_message(self, message):
+    def send_message(self, message, bot_message=True):
+        if bot_message:
+            message = self.BOT_PROMPT.format(message)
         self.connect.send_message(self.SEND.format(
             channel=self.channel_name,
-            msg=self.BOT_PROMPT.format(message)
+            msg=message
         ))
 
     def _get_message(self, msg):
