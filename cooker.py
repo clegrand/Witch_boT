@@ -13,6 +13,11 @@ from welcome import logger
 class TwitchConnect(socket):
     PASS = "PASS oauth:{}"
     USER = "NICK {}"
+    CAPABILITIES = {
+        "membership": "CAP REQ :twitch.tv/membership",
+        "tags": "CAP REQ :twitch.tv/tags",
+        "commands": "CAP REQ :twitch.tv/commands"
+    }
     DEF_BUFF = 2048
     RECV_TIME = 0.1
     BEGIN_MSG = ':'
@@ -37,7 +42,13 @@ class TwitchConnect(socket):
                 if self.check_in:
                     self.check_out = i["out"]
                     self.link_func(self._ping_pong)
+            self.capabilities = []
             threading.Thread(target=self._recver).start()
+
+    def add_capabilities(self, capabilities):
+        for c in capabilities:
+            self.send_message(self.CAPABILITIES[c])
+            self.capabilities.append(c)
 
     def link_func(self, func):
         if isinstance(func, (list, tuple)):

@@ -25,6 +25,7 @@ class Console:
         else:
             channel_name = self.user.channels[0]
         self.tc = TwitchConnect(self.user.user, self.user.passwd)
+        self.tc.add_capabilities(self.tc.CAPABILITIES.keys())
         self.channel = Channel(channel_name, connection=self.tc)
 
     def input_loop(self):
