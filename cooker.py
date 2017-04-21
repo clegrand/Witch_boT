@@ -48,8 +48,9 @@ class TwitchConnect(socket):
 
     def add_capabilities(self, capabilities):
         for c in capabilities:
-            self.send_message(self.CAPABILITIES[c])
-            self.capabilities.append(c)
+            if c not in self.capabilities:
+                self.send_message(self.CAPABILITIES[c])
+                self.capabilities.append(c)
 
     def link_func(self, func):
         if isinstance(func, (list, tuple)):
@@ -149,9 +150,8 @@ class Channel:
 
 class ChannelPlugin:
 
-    def __init__(self, channel, capabilities=[]):
+    def __init__(self, channel):
         channel.link_plugins(self)
-        channel.connect.add_capabilities(filter(lambda x: x not in channel.connect.capabilities, capabilities))
 
     def user_join(self, user, info=None):
         pass
