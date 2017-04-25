@@ -3,6 +3,7 @@ import argparse
 
 from attic import CONNECTION_PATH
 
+VERSION = 'Witch_boT V0.2 BETA'
 ARGS = 'args'
 
 opts = {}
@@ -21,6 +22,7 @@ def get_args():
     parser.add_argument('-g', "--no-graphic", dest="graphic", action="store_false",
                         default=True,
                         help=_("Unable graphic interface"))
+    parser.add_argument('--version', action="version", version=VERSION)
     global opts, logger
     opts[ARGS] = o = parser.parse_args()
     if o.debug:
