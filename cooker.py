@@ -63,7 +63,6 @@ class TwitchConnect(socket):
             if not self.limit.checkpoint():
                 logger.warn(_("Messages number out of limit (message lost)"))
                 return False
-            logger.debug(self.limit)
         self.send(self.DEF_MESSAGE.format(mess).encode())
         logger.debug("< {}".format(mess))
         return True
@@ -81,7 +80,6 @@ class TwitchConnect(socket):
                 logger.debug("Connection lost")
                 return
             if data:
-                logger.debug("Data : %u" % len(data))
                 for d in data.decode().strip().split(self.END_MSG):
                     if d.startswith(self.BEGIN_MSG):
                         d = d[1:]
@@ -112,17 +110,17 @@ class Channel:
     }
 
     def __init__(self, channel_name, connection):
-        self.channel_name = "#{}".format(channel_name)
+        self.channel_name = "#{}".format(channel_name).lower()
         self.connect = connection
         self.connect.send_message(self.JOIN.format(self.channel_name))
         self.connect.link_func(self._get_message)
         self.channel_plugins = []
 
-    def link_plugins(self, func):
-        if isinstance(func, (list, tuple)):
-            self.channel_plugins.extend(func)
+    def link_plugins(self, plugin):
+        if isinstance(plugin, (list, tuple)):
+            self.channel_plugins.extend(plugin)
         else:
-            self.channel_plugins.append(func)
+            self.channel_plugins.append(plugin)
 
     def send_message(self, message, bot_message=True):
         if bot_message:
@@ -142,7 +140,6 @@ class Channel:
                     i = m.get('info')
                     if i:
                         m['info'] = parse_params(i)
-                    logger.debug("Match : %s with data : %s" % (k, m))
                     for f in self.channel_plugins:
                         getattr(f, k)(**m)
                     break
@@ -152,6 +149,7 @@ class ChannelPlugin:
 
     def __init__(self, channel):
         channel.link_plugins(self)
+        self.channel = channel
 
     def user_join(self, user, info=None):
         pass
